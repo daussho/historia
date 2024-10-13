@@ -1,6 +1,6 @@
 module github.com/daussho/historia
 
-go 1.22.6
+go 1.20
 
 require github.com/gofiber/fiber/v2 v2.52.5
 
@@ -30,6 +30,6 @@ require (
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.17.0 // indirect
 	golang.org/x/text v0.19.0 // indirect
-	gorm.io/driver/sqlite v1.5.6 // indirect
-	gorm.io/gorm v1.25.12 // indirect
+	gorm.io/driver/sqlite v1.5.6
+	gorm.io/gorm v1.25.12
 )
