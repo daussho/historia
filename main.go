@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/daussho/historia/domain/history"
 	"github.com/daussho/historia/internal/db"
@@ -11,7 +12,15 @@ import (
 )
 
 func main() {
-	LoadENV()
+	envPath := os.Getenv("ENV_PATH")
+	if envPath == "" {
+		envPath = ".env"
+	}
+
+	err := godotenv.Load(envPath)
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
 
 	gormDB := db.Init()
 	db.Migrate(gormDB)
@@ -42,15 +51,4 @@ func main() {
 	apiRoute.Put("/history/:id", historyHandler.UpdateVisit)
 
 	log.Fatal(app.Listen(":3000"))
-}
-
-func LoadENV() {
-	path := ".env"
-	for {
-		err := godotenv.Load(path)
-		if err == nil {
-			break
-		}
-		path = "../" + path
-	}
 }
