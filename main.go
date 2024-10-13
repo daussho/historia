@@ -11,10 +11,7 @@ import (
 )
 
 func main() {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	LoadENV()
 
 	gormDB := db.Init()
 	db.Migrate(gormDB)
@@ -45,4 +42,15 @@ func main() {
 	apiRoute.Put("/history/:id", historyHandler.UpdateVisit)
 
 	log.Fatal(app.Listen(":3000"))
+}
+
+func LoadENV() {
+	path := ".env"
+	for {
+		err := godotenv.Load(path)
+		if err == nil {
+			break
+		}
+		path = "../" + path
+	}
 }
