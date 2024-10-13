@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"os"
 
 	"github.com/daussho/historia/domain/history"
 	"github.com/daussho/historia/internal/db"
@@ -12,14 +11,9 @@ import (
 )
 
 func main() {
-	envPath := os.Getenv("ENV_PATH")
-	if envPath == "" {
-		envPath = ".env"
-	}
-
-	err := godotenv.Load(envPath)
+	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("Error loading .env file")
 	}
 
 	gormDB := db.Init()
