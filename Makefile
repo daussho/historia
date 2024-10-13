@@ -6,6 +6,10 @@ run:
 build:
 	@go build -o bin/historia-app .
 
+update:
+	build
+	service-restart
+
 service-start:
 	@systemctl start historia.service
 	
