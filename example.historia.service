@@ -1,0 +1,11 @@
+[Unit]
+Description=Historia app
+After=multi-user.target
+
+[Service]
+User=root
+Group=root
+ExecStart=/home/daussho/Documents/historia/bin/historia-app
+
+[Install]
+WantedBy=multi-user.target

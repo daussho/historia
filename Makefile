@@ -5,3 +5,12 @@ run:
 
 build:
 	@go build -o bin/historia-app .
+
+service-start:
+	@systemctl start historia.service
+	
+service-enable:
+	@systemctl enable historia.service
+
+service-restart:
+	@systemctl restart historia.service
