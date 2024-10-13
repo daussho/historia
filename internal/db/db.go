@@ -1,20 +1,29 @@
 package db
 
 import (
+	"fmt"
 	"log"
+	"os"
 	"time"
 
 	"github.com/daussho/historia/domain/history"
 	"github.com/daussho/historia/domain/user"
 	"github.com/daussho/historia/utils/password"
 	"github.com/google/uuid"
-	"gorm.io/driver/sqlite"
+	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
 )
 
 func Init() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("historia.db"), &gorm.Config{
+	user := os.Getenv("DB_USER")
+	password := os.Getenv("DB_PASSWORD")
+	host := os.Getenv("DB_HOST")
+	port := os.Getenv("DB_PORT")
+	database := os.Getenv("DB_DATABASE")
+
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, database)
+	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
@@ -48,13 +57,15 @@ func Seed(db *gorm.DB) {
 		})
 	} else if count == 1 {
 		db.Model(&user.User{}).Select("id").First(&userID)
-		db.Model(&user.UserToken{}).Count(&count)
-		if count == 0 {
-			db.Create(&user.UserToken{
-				UserID:    userID,
-				Token:     uuid.NewString(),
-				ExpiredAt: time.Now().AddDate(1, 0, 0).Unix(),
-			})
-		}
+	}
+
+	// create user token
+	db.Model(&user.UserToken{}).Count(&count)
+	if count == 0 {
+		db.Create(&user.UserToken{
+			UserID:    userID,
+			Token:     uuid.NewString(),
+			ExpiredAt: time.Now().AddDate(1, 0, 0).Unix(),
+		})
 	}
 }

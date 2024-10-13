@@ -7,9 +7,15 @@ import (
 	"github.com/daussho/historia/internal/db"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	gormDB := db.Init()
 	db.Migrate(gormDB)
 	db.Seed(gormDB)
