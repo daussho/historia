@@ -25,7 +25,13 @@ func main() {
 	app.Static("/public", "./public")
 
 	app.Get("/healthcheck", func(c *fiber.Ctx) error {
-		return gormDB.Raw("SELECT 1").Error
+		err := gormDB.Raw("SELECT 1").Error
+		if err != nil {
+			return c.SendStatus(500)
+		}
+
+		c.SendString("OK")
+		return c.SendStatus(200)
 	})
 
 	apiRoute := app.Group("/api")
