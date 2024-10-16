@@ -51,6 +51,11 @@ type fiberHandler = func(ctx *fiber.Ctx) error
 
 func authMiddleware(db *gorm.DB) fiberHandler {
 	return func(ctx *fiber.Ctx) error {
+		path := ctx.Request().URI().Path()
+		if string(path) == "/healthcheck" {
+			return ctx.Next()
+		}
+
 		headers := ctx.GetReqHeaders()
 		log.Println(utils.JsonStringify(headers))
 
