@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/daussho/historia/domain/common"
+	"github.com/daussho/historia/internal/trace"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 )
@@ -25,6 +26,9 @@ func NewHandler(service Service) Handler {
 }
 
 func (h *handler) SaveVisit(ctx *fiber.Ctx) error {
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyHandler.SaveVisit", nil)
+	defer span.Finish()
+
 	var req VisitRequest
 	err := json.Unmarshal(ctx.Body(), &req)
 	if err != nil {

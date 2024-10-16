@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/daussho/historia/domain/user"
+	"github.com/daussho/historia/internal/trace"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -26,6 +27,9 @@ func NewService(db *gorm.DB) Service {
 
 // Visit implements Service.
 func (s *service) SaveVisit(ctx *fiber.Ctx, req VisitRequest) (string, error) {
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyService.SaveVisit", nil)
+	defer span.Finish()
+
 	var userToken user.UserToken
 	err := s.db.WithContext(ctx.Context()).First(&userToken, "token = ?", req.Token).Error
 	if err != nil {
