@@ -1,13 +1,14 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"time"
 )
 
 func main() {
-	t := time.Now()
-	zone, offset := t.Zone()
-	fmt.Println(zone, offset)
+	log.Println(time.Now())
+	log.Println(time.Now())
 
+	loc, _ := time.LoadLocation("Asia/Jakarta")
+	log.Println(time.Now().In(loc))
 }

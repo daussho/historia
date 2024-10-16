@@ -2,9 +2,9 @@ package history
 
 import (
 	"fmt"
-	"time"
 
 	"github.com/daussho/historia/internal/trace"
+	"github.com/daussho/historia/utils/clock"
 	context_util "github.com/daussho/historia/utils/context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
@@ -39,9 +39,9 @@ func (s *service) SaveVisit(ctx *fiber.Ctx, req VisitRequest) (string, error) {
 		URL:          req.URL,
 		UserID:       user.ID,
 		DeviceName:   req.DeviceName,
-		LastActiveAt: time.Now(),
-		CreatedAt:    time.Now(),
-		UpdatedAt:    time.Now(),
+		LastActiveAt: clock.Now(),
+		CreatedAt:    clock.Now(),
+		UpdatedAt:    clock.Now(),
 	}
 
 	res := s.db.WithContext(ctx.Context()).Create(&history)
@@ -62,8 +62,8 @@ func (s *service) UpdateVisit(ctx *fiber.Ctx, id string) error {
 		return fmt.Errorf("history id %s not found", id)
 	}
 
-	history.LastActiveAt = time.Now()
-	history.UpdatedAt = time.Now()
+	history.LastActiveAt = clock.Now()
+	history.UpdatedAt = clock.Now()
 
 	err = s.db.WithContext(ctx.Context()).Save(&history).Error
 	if err != nil {

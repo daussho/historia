@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/daussho/historia/utils"
+	"github.com/daussho/historia/utils/clock"
 	"github.com/google/uuid"
 )
 
@@ -52,8 +53,8 @@ func StartSpanWithCtx(ctx context.Context, segmentName string, tags map[string]s
 		SpanID:       spanID,
 		SegmentName:  segmentName,
 		Tags:         tags,
-		StartAt:      time.Now(),
-		EndAt:        time.Now(),
+		StartAt:      clock.Now(),
+		EndAt:        clock.Now(),
 	}
 
 	spans = append(spans, span)
@@ -66,7 +67,7 @@ func StartSpanWithCtx(ctx context.Context, segmentName string, tags map[string]s
 }
 
 func (s *Span) Finish() {
-	s.EndAt = time.Now()
+	s.EndAt = clock.Now()
 }
 
 func (s *Span) FinishAndSubmit(ctx context.Context) {

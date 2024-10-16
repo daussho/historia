@@ -7,6 +7,7 @@ import (
 	"github.com/daussho/historia/domain/user"
 	"github.com/daussho/historia/internal/db"
 	"github.com/daussho/historia/utils"
+	"github.com/daussho/historia/utils/clock"
 	"github.com/daussho/historia/utils/password"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -26,8 +27,8 @@ func main() {
 		Name:      "admin",
 		Email:     "admin@admin.com",
 		Password:  pwd,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: clock.Now(),
+		UpdatedAt: clock.Now(),
 	}
 	gormDB.Create(&admin)
 	log.Println(utils.JsonStringify(admin))
@@ -35,9 +36,9 @@ func main() {
 	userToken := user.UserToken{
 		UserID:    admin.ID,
 		Token:     uuid.NewString(),
-		ExpiredAt: time.Now().Add(time.Hour),
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ExpiredAt: clock.Now().Add(time.Hour),
+		CreatedAt: clock.Now(),
+		UpdatedAt: clock.Now(),
 	}
 	gormDB.Create(&userToken)
 	log.Println(utils.JsonStringify(userToken))
