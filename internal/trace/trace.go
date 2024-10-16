@@ -2,10 +2,8 @@ package trace
 
 import (
 	"context"
-	"log"
 	"time"
 
-	"github.com/daussho/historia/utils"
 	"github.com/daussho/historia/utils/clock"
 	"github.com/google/uuid"
 )
@@ -78,5 +76,5 @@ func (s *Span) FinishAndSubmit(ctx context.Context) {
 		return
 	}
 
-	log.Println(utils.JsonStringify(traces))
+	// log.Println(utils.JsonStringify(traces))
 }

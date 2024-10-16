@@ -24,7 +24,8 @@ func (h *handler) Healthcheck(ctx *fiber.Ctx) error {
 	span, ctx := trace.StartSpanWithFiberCtx(ctx, "healthcheckHandler.Healthcheck", nil)
 	defer span.Finish()
 
-	err := h.db.Raw("SELECT 1").Error
+	var res string
+	err := h.db.Debug().WithContext(ctx.Context()).Raw("SELECT 1;").Scan(&res).Error
 	if err != nil {
 		return ctx.SendStatus(500)
 	}

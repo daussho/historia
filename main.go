@@ -41,8 +41,8 @@ func main() {
 	app.Get("/healthcheck", trace.FiberHandler(healthcheckHandler.Healthcheck))
 
 	apiRoute := app.Group("/api")
-	apiRoute.Post("/history", historyHandler.SaveVisit)
-	apiRoute.Put("/history/:id", historyHandler.UpdateVisit)
+	apiRoute.Post("/history", trace.FiberHandler(historyHandler.SaveVisit))
+	apiRoute.Put("/history/:id", trace.FiberHandler(historyHandler.UpdateVisit))
 
 	log.Fatal(app.Listen(":3000"))
 }

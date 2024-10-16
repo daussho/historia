@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -18,12 +19,22 @@ func Init() *gorm.DB {
 	database := os.Getenv("DB_DATABASE")
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, database)
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
+	gormDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Info),
 	})
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
 
-	return db
+	db, err := gormDB.DB()
+	if err != nil {
+		log.Fatalf("failed to get database: %v", err)
+	}
+
+	db.SetMaxOpenConns(20)
+	db.SetMaxIdleConns(2)
+	db.SetConnMaxIdleTime(5 * time.Minute)
+	db.SetConnMaxLifetime(time.Hour)
+
+	return gormDB
 }
