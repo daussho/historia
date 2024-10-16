@@ -2,6 +2,12 @@ package common
 
 import "github.com/gofiber/fiber/v2"
 
+type ContextKey string
+
+const (
+	UserContextKey ContextKey = "user"
+)
+
 type Response struct {
 	Message string  `json:"message"`
 	Error   *string `json:"error"`

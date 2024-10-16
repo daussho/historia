@@ -1,6 +1,7 @@
 package history
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/daussho/historia/domain/user"
@@ -56,19 +57,21 @@ func (s *service) SaveVisit(ctx *fiber.Ctx, req VisitRequest) (string, error) {
 }
 
 func (s *service) UpdateVisit(ctx *fiber.Ctx, id string) error {
-	// var userToken user.UserToken
-	// err := s.db.WithContext(ctx.Context()).First(&userToken, "token = ?", req.Token).Error
-	// if err != nil {
-	// 	return err
-	// }
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyService.UpdateVisit", nil)
+	defer span.Finish()
 
-	err := s.db.Model(&History{}).
-		Where("id = ?", id).
-		Update("last_active_at", time.Now().UnixMilli()).
-		Update("updated_at", time.Now().UnixMilli()).
-		Error
+	var history History
+	err := s.db.First(&history, "id = ?", id).Error
 	if err != nil {
-		return err
+		return fmt.Errorf("history id %s not found", id)
+	}
+
+	history.LastActiveAt = time.Now()
+	history.UpdatedAt = time.Now()
+
+	err = s.db.Save(&history).Error
+	if err != nil {
+		return fmt.Errorf("failed to update history: %w", err)
 	}
 
 	return nil
