@@ -32,10 +32,11 @@ async function save() {
 
   const host = GM_getValue("host", "");
   let titleChange = true;
+  let id = "";
   while (host) {
     const title = document.title;
     if (titleChange) {
-      const id = await saveVisit(host, {
+      id = await saveVisit(host, {
         title: title,
         url: document.URL,
         device_name: device_name,
@@ -43,7 +44,10 @@ async function save() {
     }
 
     await new Promise((r) => setTimeout(r, 3_000));
-    await updateVisit(host, id);
+
+    if (id) {
+      await updateVisit(host, id);
+    }
 
     titleChange = title !== document.title;
     console.log({ titleChange, title, "document.title": document.title });
