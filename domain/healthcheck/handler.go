@@ -1,6 +1,9 @@
 package healthcheck
 
 import (
+	"fmt"
+
+	"github.com/daussho/historia/internal/ntfy"
 	"github.com/daussho/historia/internal/trace"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -27,6 +30,7 @@ func (h *handler) Healthcheck(ctx *fiber.Ctx) error {
 	var res string
 	err := h.db.Debug().WithContext(ctx.Context()).Raw("SELECT 1;").Scan(&res).Error
 	if err != nil {
+		go ntfy.SendError("Healthcheck error", fmt.Sprintf("healthcheck failed: %v", err))
 		return ctx.SendStatus(500)
 	}
 
