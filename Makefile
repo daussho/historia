@@ -15,15 +15,11 @@ update: pull build service-restart
 
 service-start:
 	@echo "service starting..."
-	@systemctl start historia.service
-	
-service-enable:
-	@echo "service enabling..."
-	@systemctl enable historia.service
+	@pm2 start historia-app
 
 service-restart:
 	@echo "service restarting..."
-	@systemctl restart historia.service
+	@pm2 restart historia-app
 
 migration-create:
 	@echo "migration creating..."

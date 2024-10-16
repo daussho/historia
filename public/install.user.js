@@ -30,8 +30,6 @@ async function save() {
     `${os}-${arch}-${browserName}-${browserVersion}`
   );
 
-  console.log({ req });
-
   const host = GM_getValue("host", "");
   let titleChange = true;
   while (host) {
