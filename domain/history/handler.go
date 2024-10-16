@@ -57,18 +57,6 @@ func (h *handler) UpdateVisit(ctx *fiber.Ctx) error {
 		return common.NewErrorResponse(ctx, fiber.StatusBadRequest, fmt.Errorf("invalid id"))
 	}
 
-	// var req VisitRequest
-	// err := json.Unmarshal(ctx.Body(), &req)
-	// if err != nil {
-	// 	return common.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
-	// }
-
-	// validate := validator.New(validator.WithRequiredStructEnabled())
-	// err = validate.Struct(&req)
-	// if err != nil {
-	// 	return common.NewErrorResponse(ctx, fiber.StatusBadRequest, err)
-	// }
-
 	err := h.service.UpdateVisit(ctx, id)
 	if err != nil {
 		return common.NewErrorResponse(ctx, fiber.StatusInternalServerError, err)

@@ -11,7 +11,7 @@ import (
 	"github.com/daussho/historia/domain/user"
 	"github.com/daussho/historia/internal/db"
 	"github.com/daussho/historia/internal/trace"
-	"github.com/daussho/historia/utils"
+	context_util "github.com/daussho/historia/utils/context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/joho/godotenv"
@@ -57,7 +57,6 @@ func authMiddleware(db *gorm.DB) fiberHandler {
 		}
 
 		headers := ctx.GetReqHeaders()
-		log.Println(utils.JsonStringify(headers))
 
 		tokens := headers["Authorization"]
 		if len(tokens) == 0 {
@@ -80,18 +79,18 @@ func authMiddleware(db *gorm.DB) fiberHandler {
 		}
 
 		var userToken user.UserToken
-		err := db.First(&userToken, "token = ?", token).Error
+		err := db.WithContext(ctx.Context()).First(&userToken, "token = ?", token).Error
 		if err != nil {
 			return common.NewErrorResponse(ctx, fiber.StatusUnauthorized, fmt.Errorf("token not found"))
 		}
 
 		var user user.User
-		err = db.First(&user, "id = ?", userToken.UserID).Error
+		err = db.WithContext(ctx.Context()).First(&user, "id = ?", userToken.UserID).Error
 		if err != nil {
 			return common.NewErrorResponse(ctx, fiber.StatusUnauthorized, fmt.Errorf("user id %s not found", userToken.UserID))
 		}
 
-		ctx.Locals(common.UserContextKey, user)
+		context_util.SetUserCtx(ctx, user)
 
 		return ctx.Next()
 	}
