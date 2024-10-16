@@ -1,4 +1,5 @@
 #!/bin/bash
+export GOOSE_MIGRATION_DIR=script
 
 run:
 	@nodemon -e go --signal SIGTERM --exec 'go run . || exit 1'
@@ -26,4 +27,8 @@ service-restart:
 
 migration-create:
 	@echo "migration creating..."
-	@ (cd script && goose create $(NAME) sql)
+	@goose create $(NAME) sql
+
+migration-up:
+	@echo "migration up..."
+	@GOOSE_DRIVER=mysql goose up

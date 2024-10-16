@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
   id varchar(36) NOT NULL PRIMARY KEY,
   name text NOT NULL,
   email varchar(255) NOT NULL UNIQUE,

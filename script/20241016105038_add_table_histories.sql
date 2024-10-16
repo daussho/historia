@@ -1,6 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
-CREATE TABLE histories (
+CREATE TABLE IF NOT EXISTS histories (
   id varchar(36) NOT NULL PRIMARY KEY,
   title longtext NOT NULL,
   url longtext NOT NULL,
