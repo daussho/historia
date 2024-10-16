@@ -8,9 +8,9 @@ type History struct {
 	URL          string    `gorm:"column:url"`
 	UserID       string    `gorm:"column:user_id"`
 	DeviceName   string    `gorm:"column:device_name"`
-	LastActiveAt time.Time `gorm:"column:last_active_at;default:CURRENT_TIMESTAMP()"`
-	CreatedAt    time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP()"`
-	UpdatedAt    time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP()"`
+	LastActiveAt time.Time `gorm:"column:last_active_at"`
+	CreatedAt    time.Time `gorm:"column:created_at"`
+	UpdatedAt    time.Time `gorm:"column:updated_at"`
 }
 
 func (History) TableName() string {

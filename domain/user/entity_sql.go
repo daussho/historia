@@ -7,8 +7,8 @@ type User struct {
 	Name      string    `gorm:"column:name"`
 	Email     string    `gorm:"column:email"`
 	Password  string    `gorm:"column:password"`
-	CreatedAt time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP()"`
-	UpdatedAt time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP()"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at"`
 }
 
 func (User) TableName() string {
@@ -18,9 +18,9 @@ func (User) TableName() string {
 type UserToken struct {
 	UserID    string    `gorm:"column:user_id"`
 	Token     string    `gorm:"column:token"`
-	ExpiredAt time.Time `gorm:"column:expired_at;default:CURRENT_TIMESTAMP()"`
-	CreatedAt time.Time `gorm:"column:created_at;default:CURRENT_TIMESTAMP()"`
-	UpdatedAt time.Time `gorm:"column:updated_at;default:CURRENT_TIMESTAMP()"`
+	ExpiredAt time.Time `gorm:"column:expired_at"`
+	CreatedAt time.Time `gorm:"column:created_at"`
+	UpdatedAt time.Time `gorm:"column:updated_at"`
 }
 
 func (UserToken) TableName() string {
