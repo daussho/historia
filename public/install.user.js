@@ -18,7 +18,7 @@ async function save() {
 
   await new Promise((r) => setTimeout(r, 3000));
 
-  const token = GM_getValue("token", "");
+  const token = getToken();
   if (!token) {
     console.log("no token");
     return;
@@ -29,26 +29,29 @@ async function save() {
     "device_name",
     `${os}-${arch}-${browserName}-${browserVersion}`
   );
-  const req = {
-    title: document.title,
-    url: document.URL,
-    device_name: device_name,
-    token: token,
-  };
 
   console.log({ req });
 
   const host = GM_getValue("host", "");
-  if (host) {
-    const id = await saveVisit(host, req);
-
-    while (id) {
-      await new Promise((r) => setTimeout(r, 3_000));
-      await updateVisit(host, id);
+  let titleChange = true;
+  while (host) {
+    const title = document.title;
+    if (titleChange) {
+      const id = await saveVisit(host, {
+        title: title,
+        url: document.URL,
+        device_name: device_name,
+      });
     }
-  } else {
-    console.log("no host");
+
+    await new Promise((r) => setTimeout(r, 3_000));
+    await updateVisit(host, id);
+
+    titleChange = title !== document.title;
+    console.log({ titleChange, title, "document.title": document.title });
   }
+
+  console.log("no host");
 }
 
 async function saveVisit(host, req) {
@@ -56,6 +59,7 @@ async function saveVisit(host, req) {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
     },
     body: JSON.stringify(req),
   });
@@ -73,9 +77,14 @@ async function updateVisit(host, id) {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
+      Authorization: `Bearer ${getToken()}`,
     },
   });
 
   const data = await res.json();
   console.log({ data });
+}
+
+function getToken() {
+  return GM_getValue("token", "");
 }
