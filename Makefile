@@ -23,3 +23,7 @@ service-enable:
 service-restart:
 	@echo "service restarting..."
 	@systemctl restart historia.service
+
+migration-create:
+	@echo "migration creating..."
+	@ (cd script && goose create $(NAME) sql)
