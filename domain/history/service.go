@@ -42,9 +42,9 @@ func (s *service) SaveVisit(ctx *fiber.Ctx, req VisitRequest) (string, error) {
 		URL:          req.URL,
 		UserID:       userToken.UserID,
 		DeviceName:   req.DeviceName,
-		LastActiveAt: time.Now().UnixMilli(),
-		CreatedAt:    time.Now().UnixMilli(),
-		UpdatedAt:    time.Now().UnixMilli(),
+		LastActiveAt: time.Now(),
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 
 	res := s.db.WithContext(ctx.Context()).Create(&history)
