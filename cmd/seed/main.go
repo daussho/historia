@@ -33,7 +33,7 @@ func main() {
 	log.Println(utils.JsonStringify(admin))
 
 	userToken := user.UserToken{
-		UserID:    uuid.NewString(),
+		UserID:    admin.ID,
 		Token:     uuid.NewString(),
 		ExpiredAt: time.Now().Add(time.Hour),
 		CreatedAt: time.Now(),
