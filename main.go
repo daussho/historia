@@ -28,6 +28,7 @@ func main() {
 	app := fiber.New()
 	app.Use(
 		cors.New(cors.Config{AllowOrigins: "*"}),
+		middleware.RateLimit(),
 	)
 
 	app.Static("/public", "./public")
@@ -35,7 +36,7 @@ func main() {
 	app.Get("/healthcheck", trace.FiberHandler(healthcheckHandler.Healthcheck))
 
 	apiRoute := app.Group("/api").
-		Use(middleware.AuthApiMiddleware(gormDB))
+		Use(middleware.AuthApi(gormDB))
 
 	apiRoute.Post("/history", trace.FiberHandler(historyHandler.SaveVisit))
 	apiRoute.Put("/history/:id", trace.FiberHandler(historyHandler.UpdateVisit))

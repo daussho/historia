@@ -3,17 +3,19 @@ package middleware
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/daussho/historia/domain/common"
 	"github.com/daussho/historia/domain/user"
 	context_util "github.com/daussho/historia/utils/context"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
 	"gorm.io/gorm"
 )
 
 type fiberHandler = func(ctx *fiber.Ctx) error
 
-func AuthApiMiddleware(db *gorm.DB) fiberHandler {
+func AuthApi(db *gorm.DB) fiberHandler {
 	return func(ctx *fiber.Ctx) error {
 		headers := ctx.GetReqHeaders()
 
@@ -53,4 +55,21 @@ func AuthApiMiddleware(db *gorm.DB) fiberHandler {
 
 		return ctx.Next()
 	}
+}
+
+func RateLimit() fiberHandler {
+	cfg := limiter.ConfigDefault
+	cfg.Max = 10
+	cfg.Expiration = time.Second
+	cfg.KeyGenerator = func(c *fiber.Ctx) string {
+		user := context_util.GetUserCtx(c)
+
+		if user.ID == "" {
+			return fmt.Sprintf("ip:%s", c.IP())
+		}
+
+		return fmt.Sprintf("user:%s", user.ID)
+	}
+
+	return limiter.New(cfg)
 }
