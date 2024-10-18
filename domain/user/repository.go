@@ -32,3 +32,32 @@ func (r *repository) GetUserByEmail(ctx *fiber.Ctx, email string) (User, error) 
 
 	return user, err
 }
+
+func (r *repository) InsertToken(ctx *fiber.Ctx, req UserToken) error {
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "userRepository.InsertToken", nil)
+	defer span.Finish()
+
+	now := sq.Expr("now()")
+	expired := sq.Expr("now() + INTERVAL 7 day")
+	data := map[string]any{
+		"user_id":    req.UserID,
+		"token":      req.Token,
+		"expired_at": expired,
+		"created_at": now,
+		"updated_at": now,
+	}
+
+	sql, args, err := sq.Insert(req.TableName()).
+		SetMap(data).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = r.db.ExecContext(ctx.Context(), sql, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

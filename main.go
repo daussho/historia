@@ -15,6 +15,7 @@ import (
 	"github.com/daussho/historia/internal/trace"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/redirect"
 	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
 )
@@ -37,6 +38,7 @@ func main() {
 		Views: html.New("./views", ".html"),
 	})
 	app.Use(
+		middleware.PanicRecovery,
 		cors.New(cors.Config{AllowOrigins: "*"}),
 		middleware.RateLimit(),
 	)
@@ -45,12 +47,20 @@ func main() {
 
 	healthcheckHandler := healthcheck.NewHandler(sqlDB)
 
-	userService := user.NewService(gormDB)
+	userRepo := user.NewRepository(sqlDB)
+	userService := user.NewService(userRepo)
 	userHandler := user.NewHandler(userService)
 
 	historyRepo := history.NewRepository(sqlDB)
 	historySvc := history.NewService(historyRepo)
 	historyHandler := history.NewHandler(historySvc, userService)
+
+	app.Use(redirect.New(redirect.Config{
+		Rules: map[string]string{
+			"/": "/history",
+		},
+		StatusCode: 301,
+	}))
 
 	app.Get("/healthcheck", trace.FiberHandler(healthcheckHandler.Healthcheck))
 

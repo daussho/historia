@@ -2,17 +2,16 @@ package user
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/daussho/historia/domain/common"
+	"github.com/daussho/historia/internal/logger"
 	"github.com/daussho/historia/internal/trace"
 	"github.com/daussho/historia/utils/clock"
 	context_util "github.com/daussho/historia/utils/context"
 	"github.com/daussho/historia/utils/password"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type Service interface {
@@ -22,12 +21,12 @@ type Service interface {
 }
 
 type service struct {
-	db *gorm.DB
+	repo *repository
 }
 
-func NewService(db *gorm.DB) Service {
+func NewService(repo *repository) Service {
 	return &service{
-		db: db,
+		repo: repo,
 	}
 }
 
@@ -35,16 +34,15 @@ func (s *service) GenerateToken(ctx *fiber.Ctx, req LoginRequest) (UserToken, er
 	span, ctx := trace.StartSpanWithFiberCtx(ctx, "userService.GenerateToken", nil)
 	defer span.Finish()
 
-	var user User
-	err := s.db.WithContext(ctx.Context()).First(&user, "email = ?", req.Email).Error
+	user, err := s.repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
-		log.Println("failed to get user: ", err.Error())
+		logger.Log().Error(err)
 		return UserToken{}, fmt.Errorf("wrong email or password")
 	}
 
 	valid := password.Check(req.Password, user.Password)
 	if !valid {
-		log.Println("invalid password")
+		logger.Log().Error(err)
 		return UserToken{}, fmt.Errorf("wrong email or password")
 	}
 
@@ -56,9 +54,10 @@ func (s *service) GenerateToken(ctx *fiber.Ctx, req LoginRequest) (UserToken, er
 		CreatedAt: clock.Now(),
 		UpdatedAt: clock.Now(),
 	}
-	err = s.db.WithContext(ctx.Context()).Create(&userToken).Error
+
+	err = s.repo.InsertToken(ctx, userToken)
 	if err != nil {
-		log.Println("failed to create user token: ", err.Error())
+		logger.Log().Error(err)
 		return UserToken{}, fmt.Errorf("failed to create user token")
 	}
 
@@ -69,16 +68,15 @@ func (s *service) Login(ctx *fiber.Ctx, req LoginRequest) (User, error) {
 	span, ctx := trace.StartSpanWithFiberCtx(ctx, "userService.Login", nil)
 	defer span.Finish()
 
-	var user User
-	err := s.db.WithContext(ctx.Context()).First(&user, "email = ?", req.Email).Error
+	user, err := s.repo.GetUserByEmail(ctx, req.Email)
 	if err != nil {
-		log.Println("failed to get user: ", err.Error())
+		logger.Log().Error(err)
 		return user, fmt.Errorf("wrong email or password")
 	}
 
 	valid := password.Check(req.Password, user.Password)
 	if !valid {
-		log.Println("invalid password")
+		logger.Log().Error("invalid password")
 		return user, fmt.Errorf("wrong email or password")
 	}
 

@@ -110,3 +110,14 @@ func resolveUserSession(ctx *fiber.Ctx, token string, db *gorm.DB) error {
 
 	return nil
 }
+
+func PanicRecovery(ctx *fiber.Ctx) error {
+	defer func() {
+		if r := recover(); r != nil {
+			logger.Log().Error(fmt.Sprintf("%v", r))
+			ctx.Status(fiber.StatusInternalServerError)
+		}
+	}()
+
+	return ctx.Next()
+}
