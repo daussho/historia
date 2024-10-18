@@ -1,7 +1,10 @@
 package main
 
 import (
-	"log"
+	"context"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/daussho/historia/domain/healthcheck"
 	"github.com/daussho/historia/domain/history"
@@ -17,6 +20,11 @@ import (
 )
 
 func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
+	defer stop()
+
+	logger.Log().Info("Starting application...")
+
 	err := godotenv.Load()
 	if err != nil {
 		logger.Log().Infof("Error loading .env file, err: %v", err)
@@ -52,11 +60,28 @@ func main() {
 	app.Use("/history", middleware.AuthWeb(gormDB))
 	app.Get("/history", trace.FiberHandler(historyHandler.ListHistory))
 
-	apiRoute := app.Group("/api").
-		Use(middleware.AuthApi(gormDB))
+	apiRoute := app.Group("/api").Use(middleware.AuthApi(gormDB))
 
 	apiRoute.Post("/history", trace.FiberHandler(historyHandler.SaveVisit))
 	apiRoute.Put("/history/:id", trace.FiberHandler(historyHandler.UpdateVisit))
 
-	log.Fatal(app.Listen(":3000"))
+	go app.Listen(":3000")
+
+	<-ctx.Done()
+
+	// stop the server
+	logger.Log().Info("Shutting down server gracefully...")
+	err = app.Shutdown()
+	if err != nil {
+		logger.Log().Fatalf("failed to shutdown server: %v", err)
+	}
+
+	logger.Log().Info("Closing database...")
+	err = sqlDB.Close()
+	if err != nil {
+		logger.Log().Errorf("failed to close database: %v", err)
+	}
+
+	logger.Log().Info("Application stopped")
+	os.Exit(0)
 }

@@ -2,7 +2,7 @@
 export GOOSE_MIGRATION_DIR=script
 
 run:
-	@nodemon -e go,html --signal SIGTERM --exec 'go run . || exit 1'
+	@nodemon --delay 1 -e go,html --signal SIGTERM --exec 'go run . || exit 1'
 
 build:
 	@echo "run go mod tidy"

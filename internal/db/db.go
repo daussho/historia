@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
+	"github.com/daussho/historia/internal/logger"
 	"github.com/jmoiron/sqlx"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"gorm.io/gorm/logger"
 )
 
 func InitGorm() *gorm.DB {
@@ -21,7 +21,7 @@ func InitGorm() *gorm.DB {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", user, password, host, port, database)
 	gormDB, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
-		Logger: logger.Default.LogMode(logger.Error),
+		// Logger: logger.Default.LogMode(logger.Error),
 	})
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
@@ -32,7 +32,14 @@ func InitGorm() *gorm.DB {
 		log.Fatalf("failed to get database: %v", err)
 	}
 
-	db.SetMaxOpenConns(20)
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("failed to ping database: %v", err)
+	}
+
+	logger.Log().Info("gorm connected to database")
+
+	db.SetMaxOpenConns(10)
 	db.SetMaxIdleConns(2)
 	db.SetConnMaxIdleTime(5 * time.Minute)
 	db.SetConnMaxLifetime(time.Hour)
@@ -51,6 +58,17 @@ func Init() *sqlx.DB {
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
+
+	err = db.Ping()
+	if err != nil {
+		log.Fatalf("failed to ping database: %v", err)
+	}
+	logger.Log().Info("sqlx connected to database")
+
+	db.SetMaxOpenConns(10)
+	db.SetMaxIdleConns(2)
+	db.SetConnMaxIdleTime(5 * time.Minute)
+	db.SetConnMaxLifetime(time.Hour)
 
 	return db
 }

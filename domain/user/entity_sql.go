@@ -15,6 +15,17 @@ func (User) TableName() string {
 	return "users"
 }
 
+func (User) Columns() []string {
+	return []string{
+		"id",
+		"name",
+		"email",
+		"password",
+		"created_at",
+		"updated_at",
+	}
+}
+
 type UserToken struct {
 	UserID    string    `gorm:"column:user_id"`
 	Token     string    `gorm:"column:token"`
