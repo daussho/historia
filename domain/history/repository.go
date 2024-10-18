@@ -1,10 +1,10 @@
 package history
 
 import (
-	"log"
-
 	sq "github.com/Masterminds/squirrel"
+	"github.com/daussho/historia/internal/logger"
 	"github.com/daussho/historia/internal/trace"
+	"github.com/daussho/historia/utils"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
@@ -46,7 +46,7 @@ func (r *repository) GetPaginated(ctx *fiber.Ctx, req GetPaginatedRequest) ([]Hi
 	if err != nil {
 		return nil, err
 	}
-	log.Println(sql, args)
+	logger.Debug().Msgf("%s; %s", sql, utils.JsonStringify(args))
 
 	var res []History
 
@@ -81,7 +81,7 @@ func (r *repository) SaveVisit(ctx *fiber.Ctx, req VisitRequest) (string, error)
 		return "", err
 	}
 
-	log.Println(sql, args)
+	logger.Debug().Msgf("%s; %s", sql, utils.JsonStringify(args))
 	_, err = r.db.ExecContext(ctx.Context(), sql, args...)
 	if err != nil {
 		return "", err
@@ -109,7 +109,7 @@ func (r *repository) UpdateVisit(ctx *fiber.Ctx, id string) error {
 		return err
 	}
 
-	log.Println(sql, args)
+	logger.Debug().Msgf("%s; %s", sql, utils.JsonStringify(args))
 
 	_, err = r.db.ExecContext(ctx.Context(), sql, args...)
 	if err != nil {

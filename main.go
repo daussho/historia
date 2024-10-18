@@ -7,6 +7,7 @@ import (
 	"github.com/daussho/historia/domain/history"
 	"github.com/daussho/historia/domain/user"
 	"github.com/daussho/historia/internal/db"
+	"github.com/daussho/historia/internal/logger"
 	"github.com/daussho/historia/internal/middleware"
 	"github.com/daussho/historia/internal/trace"
 	"github.com/gofiber/fiber/v2"
@@ -18,7 +19,7 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Error loading .env file")
+		logger.Info().Msgf("Error loading .env file, err: %v", err)
 	}
 
 	gormDB := db.InitGorm()

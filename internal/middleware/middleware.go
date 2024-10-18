@@ -2,12 +2,12 @@ package middleware
 
 import (
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
 	"github.com/daussho/historia/domain/common"
 	"github.com/daussho/historia/domain/user"
+	"github.com/daussho/historia/internal/logger"
 	"github.com/daussho/historia/utils/clock"
 	context_util "github.com/daussho/historia/utils/context"
 	"github.com/gofiber/fiber/v2"
@@ -19,7 +19,7 @@ type fiberHandler = func(ctx *fiber.Ctx) error
 
 func AuthApi(db *gorm.DB) fiberHandler {
 	return func(ctx *fiber.Ctx) error {
-		log.Println("auth api")
+		logger.Debug().Msg("auth api")
 
 		headers := ctx.GetReqHeaders()
 
@@ -65,18 +65,18 @@ func RateLimit() fiberHandler {
 
 func AuthWeb(db *gorm.DB) fiberHandler {
 	return func(ctx *fiber.Ctx) error {
-		log.Println("auth web")
+		logger.Debug().Msg("auth web")
 
 		token := ctx.Cookies("token")
 
 		if token == "" {
-			log.Println("token empty")
+			logger.Warn().Msg("token empty")
 			return ctx.Redirect("/login")
 		}
 
 		err := resolveUserSession(ctx, token, db)
 		if err != nil {
-			log.Println("failed to resolve user session: ", err.Error())
+			logger.Warn().Msgf("failed to resolve user session: %s", err.Error())
 			return ctx.Redirect("/login")
 		}
 
