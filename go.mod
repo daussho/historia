@@ -28,7 +28,6 @@ require (
 require (
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/andybalholm/brotli v1.0.5 // indirect
-	github.com/georgysavva/scany v1.2.2
 	github.com/go-playground/validator/v10 v10.22.1
 	github.com/gofiber/template/html/v2 v2.1.2
 	github.com/google/uuid v1.5.0
