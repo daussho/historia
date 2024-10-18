@@ -40,7 +40,7 @@ func main() {
 	userHandler := user.NewHandler(userService)
 
 	historyRepo := history.NewRepository(sqlDB)
-	historySvc := history.NewService(gormDB, historyRepo)
+	historySvc := history.NewService(historyRepo)
 	historyHandler := history.NewHandler(historySvc, userService)
 
 	app.Get("/healthcheck", trace.FiberHandler(healthcheckHandler.Healthcheck))

@@ -4,10 +4,7 @@ import (
 	"fmt"
 
 	"github.com/daussho/historia/internal/trace"
-	"github.com/daussho/historia/utils/clock"
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
-	"gorm.io/gorm"
 )
 
 type Service interface {
@@ -17,55 +14,34 @@ type Service interface {
 }
 
 type service struct {
-	db   *gorm.DB
 	repo *repository
 }
 
-func NewService(db *gorm.DB, repo *repository) Service {
+func NewService(repo *repository) Service {
 	return &service{
-		db:   db,
 		repo: repo,
 	}
 }
 
-// Visit implements Service.
 func (s *service) SaveVisit(ctx *fiber.Ctx, req VisitRequest, userID string) (string, error) {
 	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyService.SaveVisit", nil)
 	defer span.Finish()
 
-	history := History{
-		ID:           uuid.NewString(),
-		Title:        req.Title,
-		URL:          req.URL,
-		UserID:       userID,
-		DeviceName:   req.DeviceName,
-		LastActiveAt: clock.Now(),
-		CreatedAt:    clock.Now(),
-		UpdatedAt:    clock.Now(),
+	req.UserID = userID
+
+	id, err := s.repo.SaveVisit(ctx, req)
+	if err != nil {
+		return "", err
 	}
 
-	res := s.db.WithContext(ctx.Context()).Create(&history)
-	if res.Error != nil {
-		return "", res.Error
-	}
-
-	return history.ID, nil
+	return id, nil
 }
 
 func (s *service) UpdateVisit(ctx *fiber.Ctx, id string) error {
 	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyService.UpdateVisit", nil)
 	defer span.Finish()
 
-	var history History
-	err := s.db.WithContext(ctx.Context()).First(&history, "id = ?", id).Error
-	if err != nil {
-		return fmt.Errorf("history id %s not found", id)
-	}
-
-	history.LastActiveAt = clock.Now()
-	history.UpdatedAt = clock.Now()
-
-	err = s.db.WithContext(ctx.Context()).Save(&history).Error
+	err := s.repo.UpdateVisit(ctx, id)
 	if err != nil {
 		return fmt.Errorf("failed to update history: %w", err)
 	}
@@ -88,15 +64,6 @@ func (s *service) ListHistory(ctx *fiber.Ctx, userID string, pageSize, pageIndex
 		Limit:  uint64(pageSize),
 	}
 	histories, err := s.repo.GetPaginated(ctx, req)
-
-	// var histories []History
-	// err := s.db.WithContext(ctx.Context()).
-	// 	Where("user_id = ?", userID).
-	// 	Order("created_at DESC").
-	// 	Offset(offset).
-	// 	Limit(pageSize).
-	// 	Find(&histories).
-	// 	Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to list history: %w", err)
 	}

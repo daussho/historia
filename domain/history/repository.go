@@ -1,19 +1,20 @@
 package history
 
 import (
-	"database/sql"
+	"log"
 
-	"github.com/Masterminds/squirrel"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/daussho/historia/internal/trace"
-	"github.com/georgysavva/scany/sqlscan"
 	"github.com/gofiber/fiber/v2"
+	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 )
 
 type repository struct {
-	db *sql.DB
+	db *sqlx.DB
 }
 
-func NewRepository(db *sql.DB) *repository {
+func NewRepository(db *sqlx.DB) *repository {
 	return &repository{
 		db: db,
 	}
@@ -26,29 +27,94 @@ type GetPaginatedRequest struct {
 }
 
 func (r *repository) GetPaginated(ctx *fiber.Ctx, req GetPaginatedRequest) ([]History, error) {
-	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyRepository.SaveVisit", nil)
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyRepository.GetPaginated", nil)
 	defer span.Finish()
 
 	var model History
 
-	q := squirrel.Select(model.Columns()...).From(model.TableName())
+	q := sq.Select(model.Columns()...).
+		From(model.TableName()).
+		Offset(req.Offset).
+		Limit(req.Limit).
+		OrderBy("created_at DESC")
 
 	if req.UserID != "" {
 		q = q.Where("user_id = ?", req.UserID)
 	}
 
-	q = q.Offset(req.Offset).Limit(req.Limit)
-
 	sql, args, err := q.ToSql()
 	if err != nil {
 		return nil, err
 	}
+	log.Println(sql, args)
 
 	var res []History
-	err = sqlscan.Select(ctx.Context(), r.db, &res, sql, args...)
+
+	err = r.db.SelectContext(ctx.Context(), &res, sql, args...)
 	if err != nil {
 		return nil, err
 	}
 
 	return res, nil
+}
+
+func (r *repository) SaveVisit(ctx *fiber.Ctx, req VisitRequest) (string, error) {
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyRepository.SaveVisit", nil)
+	defer span.Finish()
+
+	id := uuid.NewString()
+	now := sq.Expr("now()")
+
+	data := map[string]any{
+		"id":             id,
+		"title":          req.Title,
+		"url":            req.URL,
+		"user_id":        req.UserID,
+		"device_name":    req.DeviceName,
+		"last_active_at": now,
+		"created_at":     now,
+		"updated_at":     now,
+	}
+
+	sql, args, err := sq.Insert(History{}.TableName()).SetMap(data).ToSql()
+	if err != nil {
+		return "", err
+	}
+
+	log.Println(sql, args)
+	_, err = r.db.ExecContext(ctx.Context(), sql, args...)
+	if err != nil {
+		return "", err
+	}
+
+	return id, nil
+}
+
+func (r *repository) UpdateVisit(ctx *fiber.Ctx, id string) error {
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyRepository.UpdateVisit", nil)
+	defer span.Finish()
+
+	now := sq.Expr("now()")
+
+	data := map[string]any{
+		"last_active_at": now,
+		"updated_at":     now,
+	}
+
+	sql, args, err := sq.Update(History{}.TableName()).
+		Where("id = ?", id).
+		SetMap(data).
+		ToSql()
+	if err != nil {
+		return err
+	}
+
+	log.Println(sql, args)
+
+	_, err = r.db.ExecContext(ctx.Context(), sql, args...)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
