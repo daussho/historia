@@ -103,6 +103,7 @@ func (h *handler) ListHistory(ctx *fiber.Ctx) error {
 		data = append(data, historyData{
 			"title":      history.Title,
 			"url":        history.URL,
+			"device":     history.DeviceName,
 			"created_at": history.CreatedAt.Format("2006-01-02 15:04:05"),
 			"duration":   history.LastActiveAt.Sub(history.CreatedAt).String(),
 		})

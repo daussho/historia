@@ -50,7 +50,7 @@ func main() {
 	})
 	app.Use(
 		mw.PanicRecovery(),
-		mw.RateLimit(),
+		// mw.RateLimit(),
 		cors.New(cors.Config{AllowOrigins: "*"}),
 	)
 
