@@ -17,6 +17,16 @@ import (
 
 type fiberHandler = func(ctx *fiber.Ctx) error
 
+type middleware struct {
+	userSvc user.Service
+}
+
+func NewMiddleware(userSvc user.Service) *middleware {
+	return &middleware{
+		userSvc: userSvc,
+	}
+}
+
 func AuthApi(db *gorm.DB) fiberHandler {
 	return func(ctx *fiber.Ctx) error {
 		logger.Log().Debug("auth api")
@@ -52,7 +62,7 @@ func AuthApi(db *gorm.DB) fiberHandler {
 	}
 }
 
-func RateLimit() fiberHandler {
+func (mw *middleware) RateLimit() fiberHandler {
 	cfg := limiter.ConfigDefault
 	cfg.Max = 10
 	cfg.Expiration = time.Second
@@ -111,13 +121,15 @@ func resolveUserSession(ctx *fiber.Ctx, token string, db *gorm.DB) error {
 	return nil
 }
 
-func PanicRecovery(ctx *fiber.Ctx) error {
-	defer func() {
-		if r := recover(); r != nil {
-			logger.Log().Error(fmt.Sprintf("%v", r))
-			ctx.Status(fiber.StatusInternalServerError)
-		}
-	}()
+func (mw *middleware) PanicRecovery() fiberHandler {
+	return func(ctx *fiber.Ctx) error {
+		defer func() {
+			if r := recover(); r != nil {
+				logger.Log().Error(fmt.Sprintf("%v", r))
+				ctx.Status(fiber.StatusInternalServerError)
+			}
+		}()
 
-	return ctx.Next()
+		return ctx.Next()
+	}
 }

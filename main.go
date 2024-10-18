@@ -34,17 +34,6 @@ func main() {
 	gormDB := db.InitGorm()
 	sqlDB := db.Init()
 
-	app := fiber.New(fiber.Config{
-		Views: html.New("./views", ".html"),
-	})
-	app.Use(
-		middleware.PanicRecovery,
-		cors.New(cors.Config{AllowOrigins: "*"}),
-		middleware.RateLimit(),
-	)
-
-	app.Static("/public", "./public")
-
 	healthcheckHandler := healthcheck.NewHandler(sqlDB)
 
 	userRepo := user.NewRepository(sqlDB)
@@ -54,6 +43,19 @@ func main() {
 	historyRepo := history.NewRepository(sqlDB)
 	historySvc := history.NewService(historyRepo)
 	historyHandler := history.NewHandler(historySvc, userService)
+
+	mw := middleware.NewMiddleware(userService)
+
+	app := fiber.New(fiber.Config{
+		Views: html.New("./views", ".html"),
+	})
+	app.Use(
+		mw.PanicRecovery(),
+		mw.RateLimit(),
+		cors.New(cors.Config{AllowOrigins: "*"}),
+	)
+
+	app.Static("/public", "./public")
 
 	app.Use(redirect.New(redirect.Config{
 		Rules: map[string]string{
