@@ -9,10 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-type ContextKey string
+// type ContextKey string
 
 const (
-	UserContextKey ContextKey = "user"
+	UserSessionKey = "user-session"
 )
 
 type Response struct {

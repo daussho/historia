@@ -5,11 +5,13 @@ import (
 
 	"github.com/daussho/historia/domain/healthcheck"
 	"github.com/daussho/historia/domain/history"
+	"github.com/daussho/historia/domain/user"
 	"github.com/daussho/historia/internal/db"
 	"github.com/daussho/historia/internal/middleware"
 	"github.com/daussho/historia/internal/trace"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/template/html/v2"
 	"github.com/joho/godotenv"
 )
 
@@ -21,11 +23,9 @@ func main() {
 
 	gormDB := db.Init()
 
-	healthcheckHandler := healthcheck.NewHandler(gormDB)
-	historySvc := history.NewService(gormDB)
-	historyHandler := history.NewHandler(historySvc)
-
-	app := fiber.New()
+	app := fiber.New(fiber.Config{
+		Views: html.New("./views", ".html"),
+	})
 	app.Use(
 		cors.New(cors.Config{AllowOrigins: "*"}),
 		middleware.RateLimit(),
@@ -33,7 +33,21 @@ func main() {
 
 	app.Static("/public", "./public")
 
+	healthcheckHandler := healthcheck.NewHandler(gormDB)
+
+	userService := user.NewService(gormDB)
+	userHandler := user.NewHandler(userService)
+
+	historySvc := history.NewService(gormDB)
+	historyHandler := history.NewHandler(historySvc, userService)
+
 	app.Get("/healthcheck", trace.FiberHandler(healthcheckHandler.Healthcheck))
+
+	app.Get("/login", trace.FiberHandler(userHandler.Login))
+	app.Post("/login", trace.FiberHandler(userHandler.Login))
+
+	app.Use("/history", middleware.AuthWeb(gormDB))
+	app.Get("/history", trace.FiberHandler(historyHandler.ListHistory))
 
 	apiRoute := app.Group("/api").
 		Use(middleware.AuthApi(gormDB))

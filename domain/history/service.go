@@ -3,21 +3,23 @@ package history
 import (
 	"fmt"
 
+	"github.com/daussho/historia/domain/user"
 	"github.com/daussho/historia/internal/trace"
 	"github.com/daussho/historia/utils/clock"
-	context_util "github.com/daussho/historia/utils/context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
 type Service interface {
-	SaveVisit(c *fiber.Ctx, req VisitRequest) (string, error)
+	SaveVisit(c *fiber.Ctx, req VisitRequest, userID string) (string, error)
 	UpdateVisit(ctx *fiber.Ctx, id string) error
+	ListHistory(ctx *fiber.Ctx, userID string, pageSize, pageIndex int) ([]History, error)
 }
 
 type service struct {
-	db *gorm.DB
+	db      *gorm.DB
+	userSvc user.Service
 }
 
 func NewService(db *gorm.DB) Service {
@@ -27,17 +29,15 @@ func NewService(db *gorm.DB) Service {
 }
 
 // Visit implements Service.
-func (s *service) SaveVisit(ctx *fiber.Ctx, req VisitRequest) (string, error) {
+func (s *service) SaveVisit(ctx *fiber.Ctx, req VisitRequest, userID string) (string, error) {
 	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyService.SaveVisit", nil)
 	defer span.Finish()
-
-	user := context_util.GetUserCtx(ctx)
 
 	history := History{
 		ID:           uuid.NewString(),
 		Title:        req.Title,
 		URL:          req.URL,
-		UserID:       user.ID,
+		UserID:       userID,
 		DeviceName:   req.DeviceName,
 		LastActiveAt: clock.Now(),
 		CreatedAt:    clock.Now(),
@@ -71,4 +71,28 @@ func (s *service) UpdateVisit(ctx *fiber.Ctx, id string) error {
 	}
 
 	return nil
+}
+
+func (s *service) ListHistory(ctx *fiber.Ctx, userID string, pageSize, pageIndex int) ([]History, error) {
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "historyService.ListHistory", nil)
+	defer span.Finish()
+
+	offset := 0
+	if pageIndex > 0 {
+		offset = pageSize * (pageIndex - 1)
+	}
+
+	var histories []History
+	err := s.db.WithContext(ctx.Context()).
+		Where("user_id = ?", userID).
+		Order("created_at DESC").
+		Offset(offset).
+		Limit(pageSize).
+		Find(&histories).
+		Error
+	if err != nil {
+		return nil, fmt.Errorf("failed to list history: %w", err)
+	}
+
+	return histories, nil
 }
