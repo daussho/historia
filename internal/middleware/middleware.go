@@ -95,7 +95,7 @@ func (mw *middleware) AuthWeb() fiberHandler {
 func (mw *middleware) resolveUserSession(ctx *fiber.Ctx, token string) error {
 	userSession, err := mw.userSvc.GetUserSessionWithToken(ctx, token)
 	if err != nil {
-		logger.Log().Warn("failed to get user session: %s", err.Error())
+		logger.Log().Warnf("failed to get user session: %s", err.Error())
 		return err
 	}
 
