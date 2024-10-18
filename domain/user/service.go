@@ -99,3 +99,29 @@ func (s *service) GetSession(ctx *fiber.Ctx) (UserSession, bool) {
 
 	return session, true
 }
+
+func (s *service) GetUserSessionWithToken(ctx *fiber.Ctx, token string) (UserSession, error) {
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "userService.GetUserSessionWithToken", nil)
+	defer span.Finish()
+
+	userToken, err := s.repo.GetUserTokenByToken(ctx, token)
+	if err != nil {
+		return UserSession{}, err
+	}
+
+	if clock.Now().After(userToken.ExpiredAt) {
+		return UserSession{}, fmt.Errorf("token expired")
+	}
+
+	user, err := s.repo.GetUserByID(ctx, userToken.UserID)
+	if err != nil {
+		return UserSession{}, err
+	}
+
+	sess := UserSession{
+		User:      user,
+		ExpiredAt: userToken.ExpiredAt,
+	}
+
+	return sess, nil
+}

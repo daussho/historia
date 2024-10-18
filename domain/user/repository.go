@@ -33,6 +33,25 @@ func (r *repository) GetUserByEmail(ctx *fiber.Ctx, email string) (User, error) 
 	return user, err
 }
 
+func (r *repository) GetUserByID(ctx *fiber.Ctx, id string) (User, error) {
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "userRepository.GetUserByID", nil)
+	defer span.Finish()
+
+	var user User
+
+	sql, args, err := sq.Select(user.Columns()...).
+		From(user.TableName()).
+		Where(sq.Eq{"id": id}).
+		ToSql()
+	if err != nil {
+		return user, err
+	}
+
+	err = r.db.GetContext(ctx.Context(), &user, sql, args...)
+
+	return user, err
+}
+
 func (r *repository) InsertToken(ctx *fiber.Ctx, req UserToken) error {
 	span, ctx := trace.StartSpanWithFiberCtx(ctx, "userRepository.InsertToken", nil)
 	defer span.Finish()
@@ -60,4 +79,22 @@ func (r *repository) InsertToken(ctx *fiber.Ctx, req UserToken) error {
 	}
 
 	return nil
+}
+
+func (r *repository) GetUserTokenByToken(ctx *fiber.Ctx, token string) (UserToken, error) {
+	span, ctx := trace.StartSpanWithFiberCtx(ctx, "userRepository.GetUserTokenByToken", nil)
+	defer span.Finish()
+
+	var userToken UserToken
+	sql, args, err := sq.Select(userToken.Columns()...).
+		From(userToken.TableName()).
+		Where(sq.Eq{"token": token}).
+		ToSql()
+	if err != nil {
+		return userToken, err
+	}
+
+	err = r.db.GetContext(ctx.Context(), &userToken, sql, args...)
+
+	return userToken, err
 }

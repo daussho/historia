@@ -37,3 +37,13 @@ type UserToken struct {
 func (UserToken) TableName() string {
 	return "user_tokens"
 }
+
+func (UserToken) Columns() []string {
+	return []string{
+		"user_id",
+		"token",
+		"expired_at",
+		"created_at",
+		"updated_at",
+	}
+}
