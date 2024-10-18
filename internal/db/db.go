@@ -7,17 +7,27 @@ import (
 	"time"
 
 	"github.com/daussho/historia/internal/logger"
+	"github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
 
 func Init() *sqlx.DB {
-	user := os.Getenv("DB_USER")
-	password := os.Getenv("DB_PASSWORD")
-	host := os.Getenv("DB_HOST")
-	port := os.Getenv("DB_PORT")
-	database := os.Getenv("DB_DATABASE")
+	cfg := mysql.Config{
+		User:                 os.Getenv("DB_USER"),
+		Passwd:               os.Getenv("DB_PASSWORD"),
+		Net:                  "tcp",
+		Addr:                 fmt.Sprintf("%s:%s", os.Getenv("DB_HOST"), os.Getenv("DB_PORT")),
+		DBName:               os.Getenv("DB_DATABASE"),
+		Params:               map[string]string{},
+		Logger:               nil,
+		CheckConnLiveness:    true,
+		ParseTime:            true,
+		Collation:            "utf8mb4_general_ci",
+		AllowNativePasswords: true,
+	}
 
-	db, err := sqlx.Open("mysql", fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=true", user, password, host, port, database))
+	dsn := cfg.FormatDSN()
+	db, err := sqlx.Open("mysql", dsn)
 	if err != nil {
 		log.Fatalf("failed to connect database: %v", err)
 	}
@@ -29,9 +39,9 @@ func Init() *sqlx.DB {
 	logger.Log().Info("sqlx connected to database")
 
 	db.SetMaxOpenConns(10)
-	db.SetMaxIdleConns(2)
-	db.SetConnMaxIdleTime(5 * time.Minute)
-	db.SetConnMaxLifetime(time.Hour)
+	db.SetMaxIdleConns(10)
+	db.SetConnMaxIdleTime(time.Minute)
+	db.SetConnMaxLifetime(time.Minute)
 
 	return db
 }

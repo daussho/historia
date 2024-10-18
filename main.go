@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os"
 	"os/signal"
 	"syscall"
@@ -10,7 +11,6 @@ import (
 	"github.com/daussho/historia/domain/history"
 	"github.com/daussho/historia/domain/user"
 	"github.com/daussho/historia/internal/db"
-	"github.com/daussho/historia/internal/logger"
 	"github.com/daussho/historia/internal/middleware"
 	"github.com/daussho/historia/internal/trace"
 	"github.com/gofiber/fiber/v2"
@@ -24,11 +24,11 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM)
 	defer stop()
 
-	logger.Log().Info("Starting application...")
+	log.Println("Starting application...")
 
 	err := godotenv.Load()
 	if err != nil {
-		logger.Log().Infof("Error loading .env file, err: %v", err)
+		log.Println("Error loading .env file, err: ", err.Error())
 	}
 
 	sqlDB := db.Init()
@@ -81,18 +81,18 @@ func main() {
 	<-ctx.Done()
 
 	// stop the server
-	logger.Log().Info("Shutting down server gracefully...")
+	log.Println("Shutting down server gracefully...")
 	err = app.Shutdown()
 	if err != nil {
-		logger.Log().Fatalf("failed to shutdown server: %v", err)
+		log.Fatalln("failed to shutdown server: ", err.Error())
 	}
 
-	logger.Log().Info("Closing database...")
+	log.Println("Closing database...")
 	err = sqlDB.Close()
 	if err != nil {
-		logger.Log().Errorf("failed to close database: %v", err)
+		log.Println("failed to close database: ", err.Error())
 	}
 
-	logger.Log().Info("Application stopped")
+	log.Println("Application stopped")
 	os.Exit(0)
 }
