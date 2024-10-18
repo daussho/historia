@@ -6,6 +6,7 @@ run:
 
 build:
 	@echo "building..."
+	@go mod tidy
 	@go build -o bin/historia-app .
 
 pull:
