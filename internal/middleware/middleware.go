@@ -8,11 +8,9 @@ import (
 	"github.com/daussho/historia/domain/common"
 	"github.com/daussho/historia/domain/user"
 	"github.com/daussho/historia/internal/logger"
-	"github.com/daussho/historia/utils/clock"
 	context_util "github.com/daussho/historia/utils/context"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
-	"gorm.io/gorm"
 )
 
 type fiberHandler = func(ctx *fiber.Ctx) error
@@ -27,7 +25,7 @@ func NewMiddleware(userSvc user.Service) *middleware {
 	}
 }
 
-func AuthApi(db *gorm.DB) fiberHandler {
+func (mw *middleware) AuthApi() fiberHandler {
 	return func(ctx *fiber.Ctx) error {
 		logger.Log().Debug("auth api")
 
@@ -53,7 +51,7 @@ func AuthApi(db *gorm.DB) fiberHandler {
 			return common.NewErrorResponse(ctx, fiber.StatusUnauthorized, fmt.Errorf("token empty"))
 		}
 
-		err := resolveUserSession(ctx, token, db)
+		err := mw.resolveUserSession(ctx, token)
 		if err != nil {
 			return common.NewErrorResponse(ctx, fiber.StatusUnauthorized, err)
 		}
@@ -73,7 +71,7 @@ func (mw *middleware) RateLimit() fiberHandler {
 	return limiter.New(cfg)
 }
 
-func AuthWeb(db *gorm.DB) fiberHandler {
+func (mw *middleware) AuthWeb() fiberHandler {
 	return func(ctx *fiber.Ctx) error {
 		logger.Log().Debug("auth web")
 
@@ -84,7 +82,7 @@ func AuthWeb(db *gorm.DB) fiberHandler {
 			return ctx.Redirect("/login")
 		}
 
-		err := resolveUserSession(ctx, token, db)
+		err := mw.resolveUserSession(ctx, token)
 		if err != nil {
 			logger.Log().Warn("failed to resolve user session: %s", err.Error())
 			return ctx.Redirect("/login")
@@ -94,29 +92,14 @@ func AuthWeb(db *gorm.DB) fiberHandler {
 	}
 }
 
-func resolveUserSession(ctx *fiber.Ctx, token string, db *gorm.DB) error {
-	var userToken user.UserToken
-	err := db.WithContext(ctx.Context()).First(&userToken, "token = ?", token).Error
+func (mw *middleware) resolveUserSession(ctx *fiber.Ctx, token string) error {
+	userSession, err := mw.userSvc.GetUserSessionWithToken(ctx, token)
 	if err != nil {
-		return fmt.Errorf("token not found")
+		logger.Log().Warn("failed to get user session: %s", err.Error())
+		return err
 	}
 
-	if clock.Now().After(userToken.ExpiredAt) {
-		return fmt.Errorf("token expired")
-	}
-
-	var userData user.User
-	err = db.WithContext(ctx.Context()).First(&userData, "id = ?", userToken.UserID).Error
-	if err != nil {
-		return fmt.Errorf("user id %s not found", userToken.UserID)
-	}
-
-	sess := user.UserSession{
-		User:      userData,
-		ExpiredAt: userToken.ExpiredAt,
-	}
-
-	context_util.SetValue(ctx, common.UserSessionKey, sess)
+	context_util.SetValue(ctx, common.UserSessionKey, userSession)
 
 	return nil
 }

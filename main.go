@@ -31,7 +31,6 @@ func main() {
 		logger.Log().Infof("Error loading .env file, err: %v", err)
 	}
 
-	gormDB := db.InitGorm()
 	sqlDB := db.Init()
 
 	healthcheckHandler := healthcheck.NewHandler(sqlDB)
@@ -69,10 +68,10 @@ func main() {
 	app.Get("/login", trace.FiberHandler(userHandler.Login))
 	app.Post("/login", trace.FiberHandler(userHandler.Login))
 
-	app.Use("/history", middleware.AuthWeb(gormDB))
+	app.Use("/history", mw.AuthWeb())
 	app.Get("/history", trace.FiberHandler(historyHandler.ListHistory))
 
-	apiRoute := app.Group("/api").Use(middleware.AuthApi(gormDB))
+	apiRoute := app.Group("/api").Use(mw.AuthApi())
 
 	apiRoute.Post("/history", trace.FiberHandler(historyHandler.SaveVisit))
 	apiRoute.Put("/history/:id", trace.FiberHandler(historyHandler.UpdateVisit))

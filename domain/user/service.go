@@ -18,6 +18,7 @@ type Service interface {
 	GenerateToken(ctx *fiber.Ctx, req LoginRequest) (UserToken, error)
 	Login(ctx *fiber.Ctx, req LoginRequest) (User, error)
 	GetSession(ctx *fiber.Ctx) (UserSession, bool)
+	GetUserSessionWithToken(ctx *fiber.Ctx, token string) (UserSession, error)
 }
 
 type service struct {
