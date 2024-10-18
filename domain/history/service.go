@@ -3,7 +3,6 @@ package history
 import (
 	"fmt"
 
-	"github.com/daussho/historia/domain/user"
 	"github.com/daussho/historia/internal/trace"
 	"github.com/daussho/historia/utils/clock"
 	"github.com/gofiber/fiber/v2"
@@ -18,13 +17,14 @@ type Service interface {
 }
 
 type service struct {
-	db      *gorm.DB
-	userSvc user.Service
+	db   *gorm.DB
+	repo *repository
 }
 
-func NewService(db *gorm.DB) Service {
+func NewService(db *gorm.DB, repo *repository) Service {
 	return &service{
-		db: db,
+		db:   db,
+		repo: repo,
 	}
 }
 
@@ -82,14 +82,21 @@ func (s *service) ListHistory(ctx *fiber.Ctx, userID string, pageSize, pageIndex
 		offset = pageSize * (pageIndex - 1)
 	}
 
-	var histories []History
-	err := s.db.WithContext(ctx.Context()).
-		Where("user_id = ?", userID).
-		Order("created_at DESC").
-		Offset(offset).
-		Limit(pageSize).
-		Find(&histories).
-		Error
+	req := GetPaginatedRequest{
+		UserID: userID,
+		Offset: uint64(offset),
+		Limit:  uint64(pageSize),
+	}
+	histories, err := s.repo.GetPaginated(ctx, req)
+
+	// var histories []History
+	// err := s.db.WithContext(ctx.Context()).
+	// 	Where("user_id = ?", userID).
+	// 	Order("created_at DESC").
+	// 	Offset(offset).
+	// 	Limit(pageSize).
+	// 	Find(&histories).
+	// 	Error
 	if err != nil {
 		return nil, fmt.Errorf("failed to list history: %w", err)
 	}

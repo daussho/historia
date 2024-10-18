@@ -21,7 +21,8 @@ func main() {
 		log.Println("Error loading .env file")
 	}
 
-	gormDB := db.Init()
+	gormDB := db.InitGorm()
+	sqlDB := db.Init()
 
 	app := fiber.New(fiber.Config{
 		Views: html.New("./views", ".html"),
@@ -38,7 +39,8 @@ func main() {
 	userService := user.NewService(gormDB)
 	userHandler := user.NewHandler(userService)
 
-	historySvc := history.NewService(gormDB)
+	historyRepo := history.NewRepository(sqlDB)
+	historySvc := history.NewService(gormDB, historyRepo)
 	historyHandler := history.NewHandler(historySvc, userService)
 
 	app.Get("/healthcheck", trace.FiberHandler(healthcheckHandler.Healthcheck))

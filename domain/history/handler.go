@@ -88,7 +88,7 @@ func (h *handler) ListHistory(ctx *fiber.Ctx) error {
 
 	histories, err := h.service.ListHistory(ctx, user.ID, pageSize, pageIndex)
 	if err != nil {
-		return ctx.Redirect("/history")
+		return ctx.SendString(err.Error())
 	}
 
 	nextUrl := fmt.Sprintf("/history?page_index=%d", pageIndex+1)
