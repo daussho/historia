@@ -3,10 +3,11 @@ package healthcheck
 import (
 	"fmt"
 
+	"github.com/daussho/historia/internal/logger"
 	"github.com/daussho/historia/internal/ntfy"
 	"github.com/daussho/historia/internal/trace"
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
+	"github.com/jmoiron/sqlx"
 )
 
 type Handler interface {
@@ -14,10 +15,10 @@ type Handler interface {
 }
 
 type handler struct {
-	db *gorm.DB
+	db *sqlx.DB
 }
 
-func NewHandler(db *gorm.DB) Handler {
+func NewHandler(db *sqlx.DB) Handler {
 	return &handler{
 		db,
 	}
@@ -28,9 +29,10 @@ func (h *handler) Healthcheck(ctx *fiber.Ctx) error {
 	defer span.Finish()
 
 	var res string
-	err := h.db.Debug().WithContext(ctx.Context()).Raw("SELECT 1;").Scan(&res).Error
+	err := h.db.GetContext(ctx.Context(), &res, "SELECT 1;")
 	if err != nil {
-		go ntfy.SendError("Healthcheck error", fmt.Sprintf("healthcheck failed: %v", err))
+		logger.Log().Errorf("healthcheck failed, err: %s", err.Error())
+		go ntfy.SendError("Healthcheck error", fmt.Sprintf("healthcheck failed: %s", err.Error()))
 		return ctx.SendStatus(500)
 	}
 

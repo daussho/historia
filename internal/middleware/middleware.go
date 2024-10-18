@@ -19,7 +19,7 @@ type fiberHandler = func(ctx *fiber.Ctx) error
 
 func AuthApi(db *gorm.DB) fiberHandler {
 	return func(ctx *fiber.Ctx) error {
-		logger.Debug().Msg("auth api")
+		logger.Log().Debug("auth api")
 
 		headers := ctx.GetReqHeaders()
 
@@ -65,18 +65,18 @@ func RateLimit() fiberHandler {
 
 func AuthWeb(db *gorm.DB) fiberHandler {
 	return func(ctx *fiber.Ctx) error {
-		logger.Debug().Msg("auth web")
+		logger.Log().Debug("auth web")
 
 		token := ctx.Cookies("token")
 
 		if token == "" {
-			logger.Warn().Msg("token empty")
+			logger.Log().Warn("token empty")
 			return ctx.Redirect("/login")
 		}
 
 		err := resolveUserSession(ctx, token, db)
 		if err != nil {
-			logger.Warn().Msgf("failed to resolve user session: %s", err.Error())
+			logger.Log().Warn("failed to resolve user session: %s", err.Error())
 			return ctx.Redirect("/login")
 		}
 

@@ -46,7 +46,7 @@ func (r *repository) GetPaginated(ctx *fiber.Ctx, req GetPaginatedRequest) ([]Hi
 	if err != nil {
 		return nil, err
 	}
-	logger.Debug().Msgf("%s; %s", sql, utils.JsonStringify(args))
+	logger.Log().Debugf("%s; %s", sql, utils.JsonStringify(args))
 
 	var res []History
 
@@ -81,7 +81,7 @@ func (r *repository) SaveVisit(ctx *fiber.Ctx, req VisitRequest) (string, error)
 		return "", err
 	}
 
-	logger.Debug().Msgf("%s; %s", sql, utils.JsonStringify(args))
+	logger.Log().Debugf("%s; %s", sql, utils.JsonStringify(args))
 	_, err = r.db.ExecContext(ctx.Context(), sql, args...)
 	if err != nil {
 		return "", err
@@ -109,7 +109,7 @@ func (r *repository) UpdateVisit(ctx *fiber.Ctx, id string) error {
 		return err
 	}
 
-	logger.Debug().Msgf("%s; %s", sql, utils.JsonStringify(args))
+	logger.Log().Debugf("%s; %s", sql, utils.JsonStringify(args))
 
 	_, err = r.db.ExecContext(ctx.Context(), sql, args...)
 	if err != nil {

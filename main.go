@@ -19,7 +19,7 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		logger.Info().Msgf("Error loading .env file, err: %v", err)
+		logger.Log().Infof("Error loading .env file, err: %v", err)
 	}
 
 	gormDB := db.InitGorm()
@@ -35,7 +35,7 @@ func main() {
 
 	app.Static("/public", "./public")
 
-	healthcheckHandler := healthcheck.NewHandler(gormDB)
+	healthcheckHandler := healthcheck.NewHandler(sqlDB)
 
 	userService := user.NewService(gormDB)
 	userHandler := user.NewHandler(userService)
