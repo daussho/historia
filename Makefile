@@ -5,8 +5,9 @@ run:
 	@nodemon -e go,html --signal SIGTERM --exec 'go run . || exit 1'
 
 build:
-	@echo "building..."
+	@echo "run go mod tidy"
 	@go mod tidy
+	@echo "building..."
 	@go build -o bin/historia-app .
 
 pull:
