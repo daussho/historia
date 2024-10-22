@@ -110,8 +110,9 @@ func (h *handler) ListHistory(ctx *fiber.Ctx) error {
 	}
 
 	return ctx.Render("page/history", fiber.Map{
-		"histories": data,
-		"next_url":  nextUrl,
-		"prev_url":  prevUrl,
+		"histories":  data,
+		"page_index": pageIndex,
+		"next_url":   nextUrl,
+		"prev_url":   prevUrl,
 	})
 }

@@ -7,10 +7,18 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bulma@1.0.2/css/bulma.min.css"
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.9.0/css/all.min.css"
+      integrity="sha512-q3eWabyZPc1XTCmF+8/LuE1ozpg5xxn7iO89yfSOd5/oKvyqLngoNGsx8jq92Y8eXJ/IRxQbEC+FGSYxtk2oiw=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <title>Historia | History</title>
+    <style></style>
   </head>
   <body>
-    <div>
+    <div style="width: 100vw; overflow-y: scroll">
       <table class="table is-bordered is-striped is-hoverable">
         <tr>
           <th>Title</th>
@@ -22,15 +30,26 @@
         {{range .histories}}
         <tr>
           <td>{{.title}}</td>
-          <td style="max-width: 500px; word-wrap: break-word"><a href="{{.url}}" target="_blank">{{.url}}</a></td>
+          <td style="max-width: 500px; word-wrap: break-word">
+            <a href="{{.url}}" target="_blank">{{.url}}</a>
+          </td>
           <td>{{.device}}</td>
           <td>{{.created_at}}</td>
           <td>{{.duration}}</td>
         </tr>
         {{end}}
       </table>
-      <a href="{{.prev_url}}" class="button">Prev</a>
-      <a href="{{.next_url}}" class="button">Next</a>
+    </div>
+    <div class="columns is-centered is-vcentered mt-3">
+      <div class="column is-narrow">
+        <a href="{{.prev_url}}" class="button">Prev</a>
+      </div>
+      <div class="column is-narrow">
+        <p>{{.page_index}}</p>
+      </div>
+      <div class="column is-narrow">
+        <a href="{{.next_url}}" class="button">Next</a>
+      </div>
     </div>
   </body>
 </html>
