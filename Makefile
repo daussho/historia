@@ -2,6 +2,12 @@
 export GOOSE_MIGRATION_DIR=script
 
 run:
+	@go run .
+
+run-wgo:
+	@wgo -file .html make run
+
+run-nodemon:
 	@nodemon --verbose --delay 1 -e go,html,mod --signal SIGTERM --exec 'go run . || exit 1'
 
 build:
