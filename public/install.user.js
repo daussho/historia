@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name historia
 // @namespace http://daussho.com/
-// @version 0.4
+// @version 0.5
 // @description Historia
 // @include     http://*
 // @include     https://*
